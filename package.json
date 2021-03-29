@@ -1,0 +1,26 @@
+{
+  "name": "marusia-skill-echo",
+  "version": "0.0.1",
+  "description": "Echoing skill for Marusia voice assistant",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "body-parser": "^1.19.0",
+    "ramda": "^0.27.1"
+  },
+  "engines": {
+    "node": "12.x"
+  },
+  "repository": {
+    "url": "https://glitch.com/edit/#!/marusia-skill-echo"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node",
+    "glitch",
+    "express"
+  ]
+}
