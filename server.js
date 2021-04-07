@@ -3,9 +3,8 @@ const server = express();
 const bodyParser = require("body-parser");
 const port = process.env.PORT || 3000;
 
-const createEchoResponse = require("./create-response.js");
+const createResponse = require("./create-response.js");
 const { pick } = require("ramda");
-let word = "сообщение";
 
 // Настройка CORS
 server.use(function (req, res, next) {
@@ -34,33 +33,9 @@ server.use(
 server.post("/webhook", (req, res) => {
   try {
     if (req.body.session["new"] == true) {
-      res.json({
-        response: {
-          text:
-            "Привет! Давайте сыграем в виселицу. Попробуйте отгадать мое слово по буквам! Но помните - у вас всего девять попыток",
-          tts:
-            "Привет! Давайте сыграем в виселицу. Попробуйте отгадать мое слово по буквам! Но помните - у вас всего девять попыток",
-          buttons: [
-            {
-              title: "Старт",
-              payload: {},
-              url: ""
-            }
-          ],
-          end_session: false
-        },
-        session: pick(
-          ["session_id", "message_id", "user_id"],
-          req.body.session
-        ),
-        version: req.body.version
-      });
+      res.json(createResponse.youStart(req.body));
     } else {
-      if (word.indexOf(req.body.request["command"]) > -1)
-        res.json(createEchoResponse.youGuessed(req.body));
-      else {
-        res.json(createEchoResponse.youDidntGuess(req.body));
-      }
+      res.json(createResponse.youGuessed(req.body));
     }
   } catch (err) {
     console.log("Ошибка ", err);
