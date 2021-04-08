@@ -32,11 +32,11 @@ server.use(
 
 server.post("/webhook", (req, res) => {
   try {
-    if (req.body.session["new"] == true) {
+    if (req.body.session["new"])
       res.json(createResponse.youStart(req.body));
-    } else {
-      res.json(createResponse.youGuessed(req.body));
-    }
+    if (req.body.request["command"] == "on_interrupt")
+      res.json(createResponse.youStop(req.body));
+    res.json(createResponse.youGuessed(req.body));
   } catch (err) {
     console.log("Ошибка ", err);
     res.status(500).send(err);
