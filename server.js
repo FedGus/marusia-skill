@@ -32,16 +32,22 @@ server.use(
 
 server.post("/webhook", (req, res) => {
   try {
+    //const sessionState = req.state && req.state.session || {};
     if (req.body.session["new"])
       res.json(createResponse.youStart(req.body));
     if (req.body.request["command"] == "on_interrupt")
       res.json(createResponse.youStop(req.body));
-    res.json(createResponse.youGuessed(req.body));
+    else {
+      if (req.body.session["message_id"] == 1)
+      res.json(createResponse.newWord(req.body)); else
+      res.json(createResponse.loose(req.body));
+    }
   } catch (err) {
     console.log("Ошибка ", err);
     res.status(500).send(err);
   }
 });
+
 
 server.listen(port, () => {
   console.log("Сервер запущен на http://localhost:" + port);
