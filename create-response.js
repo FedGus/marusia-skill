@@ -3,7 +3,7 @@ const { pick } = require("ramda");
 let word = "";
 let hideWord = "";
 let arrWord = [];
-let attempts = 2;
+let attempts = 9;
 let count;
 var arr = ['сообщение', 'колодец', 'праздник', 'картинка', 'троллейбус', 'каравай', 'поступок'];
 
@@ -29,34 +29,25 @@ function newHideWord(word) {
   return hideWord;
 }
 
-function pattern(letter) {
-  count = 0;
-  for (let i = 0; i < arrWord.length; i++) {
-    if (letter == arrWord[i]) {
-    hideWord = hideWord.substr(0, i) + letter + hideWord.substr(i + 1);
-    count++;
-    }
-  }
-  return {hideWord, count};
-}
-
-
-
-
 module.exports = {
-  loose: function ({ request, session, version }) {
-    if (attempts <= 0) {
+  youVersion: function (req) {
+    if (attempts <= 1) {
       hideWord = "";
-      attempts = 2;
-      return this.youResult({ request, session, version })
-    } else {
-      if (word.indexOf(request["command"]) > -1) {
-        if (hideWord == word)
-        return this.youWin({ request, session, version }); else 
-        return this.youGuessed({ request, session, version })
+      attempts = 9;
+      return this.youLoose(req)
+    } else if (hideWord == word) return this.youWin(req); else {
+      if (word.indexOf(req.request["command"]) > -1) {
+        count = 0;
+        for (let i = 0; i < arrWord.length; i++) {
+          if (req.request.command == arrWord[i]) {
+            hideWord = hideWord.substr(0, i) + req.request.command + hideWord.substr(i + 1);
+            count++;
+          }
+        }
+        return this.youGuessed(req, { hideWord, count })
       } else {
         attempts--;
-        return this.youDidntGuessed({ request, session, version })
+        return this.youDidntGuessed(req)
       }
     }
   },
@@ -64,7 +55,7 @@ module.exports = {
     return {
       response: {
         text:
-          "Привет! Давайте сыграем в виселицу. Попробуйте отгадать мое слово по буквам! Но помните: у вас всего девять попыток. ",
+          ["Привет! Давайте сыграем в виселицу. Попробуйте отгадать мое слово по буквам! Но помните: у вас всего девять попыток. "],
         tts:
           "Привет! Давайте сыграем в виселицу. Попробуйте отгадать мое слово по буквам! Но ^помните^, у вас всего девять попыток! ^Начнем^?",
         buttons: [
@@ -75,7 +66,7 @@ module.exports = {
           },
           {
             title: "Нет",
-            payload: { command: "on_interrupt" },
+            payload: {},
             url: ""
           }
         ],
@@ -90,20 +81,20 @@ module.exports = {
     return {
       response: {
         text:
-          ["Я загадала слово из "+ word.length + " букв! Буква?", newHideWord(word)],
+          ["Я загадала слово из " + word.length + " букв! Буква?", newHideWord(word)],
         tts:
-        "Я загадала слово из "+ word.length + " букв! ^Буква^?",
+          "Я загадала слово из " + word.length + " букв! ^Буква^?",
         end_session: false,
       },
       session: pick(["session_id", "message_id", "user_id"], session),
       version
     };
   },
-  youGuessed: function ({ request, session, version }) {
+  youGuessed: function ({ request, session, version }, { hideWord, count }) {
     return {
       response: {
-        text: ["Угадали! Эта буква встречается " + pattern(request.command).count + " раза." , pattern(request.command).hideWord],
-        tts: "<speaker audio=\"marusia-sounds/game-ping-1\"> Угадали! Эта буква встречается " + 2 + " раза.",
+        text: ["Угадали! Эта буква встречается " + count + " раз" + pluralizeRus(count, ['', 'а', '']) + ".", hideWord],
+        tts: "<speaker audio=\"marusia-sounds/game-ping-1\"> Угадали! Эта буква встречается " + count + " раз" + pluralizeRus(count, ['', 'а', '']) + ".",
         end_session: false
       },
       session: pick(["session_id", "message_id", "user_id"], session),
@@ -121,28 +112,28 @@ module.exports = {
       version
     };
   },
-  youResult: function ({ request, session, version }) {
+  youLoose: function ({ request, session, version }) {
     return {
       response: {
         text:
           "Вы проиграли. Не расстраивайтесь, в следующий раз точно повезет! Поиграем еще?",
         tts:
           "<s>Вы проиграли.</s> Не расстраивайтесь, в следующий раз точно повезет! <break time='1000ms'/> Поиграем ещ`ё?",
-          buttons: [
-        {
-          title: "Да!",
-          payload: {},
-          url: "",
-        },
-        {
-          title: "Нет",
-          payload: { command: "on_interrupt" },
-          url: ""
-        }
-      ],
+        buttons: [
+          {
+            title: "Да!",
+            payload: {},
+            url: "",
+          },
+          {
+            title: "Нет",
+            payload: {},
+            url: ""
+          }
+        ],
         end_session: false
       },
-      
+
       session: pick(["session_id", "message_id", "user_id"], session),
       version
     };
@@ -151,24 +142,24 @@ module.exports = {
     return {
       response: {
         text:
-          "Поздравляю, вы выиграли! Да, это слово '"+ word + "'. Поиграем еще?",
+          "Поздравляю, вы выиграли! Да, это слово '" + word + "'. Поиграем еще?",
         tts:
-          "<s>Поздравляю, вы выиграли!</s> Да, это слово '"+ word + "'. <break time='1000ms'/> Поиграем ещ`ё?",
-          buttons: [
-        {
-          title: "Да!",
-          payload: {},
-          url: "",
-        },
-        {
-          title: "Нет",
-          payload: { command: "on_interrupt" },
-          url: ""
-        }
-      ],
+          "<s>Поздравляю, вы выиграли!</s> Да, это слово '" + word + "'. <break time='1000ms'/> Поиграем ещ`ё?",
+        buttons: [
+          {
+            title: "Да!",
+            payload: {},
+            url: "",
+          },
+          {
+            title: "Нет",
+            payload: {},
+            url: ""
+          }
+        ],
         end_session: false
       },
-      
+
       session: pick(["session_id", "message_id", "user_id"], session),
       version
     };
