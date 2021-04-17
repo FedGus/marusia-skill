@@ -39,15 +39,11 @@ module.exports = {
           return this.clientStop(req);
         else {
           hideWord = "";
-          attempts = 9;
+          attempts = 2; //кол-во попыток
           return this.newWord(req);
         }
       }
-      if (attempts == 1) {
-        attempts = 0;
-        return this.clientLost(req)
-      }
-      else {
+      if (attempts >= 1) {
         if (word.indexOf(req.request["command"]) > -1) {
           count = 0;
           for (let i = 0; i < arrWord.length; i++) {
@@ -63,7 +59,9 @@ module.exports = {
             return this.correctAnswer(req, { hideWord, count })
         } else {
           attempts--;
-          return this.wrongAnswer(req)
+          if (attempts == 0)
+            return this.clientLost(req); else
+            return this.wrongAnswer(req)
         }
       }
     }
@@ -72,7 +70,7 @@ module.exports = {
     return {
       response: {
         text:
-          ["Привет! Давайте сыграем в виселицу. Попробуйте отгадать мое слово по буквам! Но помните: у вас всего девять попыток. "],
+          ["Привет! Давайте сыграем в виселицу. Попробуйте отгадать мое слово по буквам! Но помните: у вас всего девять попыток. Начнем?"],
         tts:
           "Привет! Давайте сыграем в виселицу. Попробуйте отгадать мое слово по буквам! Но ^помните^, у вас всего девять попыток! ^Начнем^?",
         buttons: [
@@ -98,7 +96,7 @@ module.exports = {
     return {
       response: {
         text:
-          ["Я загадала слово из " + word.length + " букв! Буква?", newHideWord(word)],
+          ["Я загадала слово из " + word.length + " букв. Буква?", newHideWord(word)],
         tts:
           "Я загадала слово из " + word.length + " букв! ^Буква^?",
         end_session: false,
@@ -108,10 +106,11 @@ module.exports = {
     };
   },
   correctAnswer: function ({ request, session, version }, { hideWord, count }) {
+    const yes = arrayRandElement(["Да!", "Верно!", "Угадали!", "Точно!", "В точку!", "Правильно!", "В яблочко!", "Есть такое!"])
     return {
       response: {
-        text: ["Угадали! Эта буква встречается " + count + " раз" + pluralizeRus(count, ['', 'а', '']) + ".", hideWord],
-        tts: "<speaker audio=\"marusia-sounds/game-ping-1\"> Угадали! Эта буква встречается " + count + " раз" + pluralizeRus(count, ['', 'а', '']) + ".",
+        text: [`${yes} Эта буква встречается ${count} раз` + pluralizeRus(count, ['', 'а', '']) + ".", hideWord],
+        tts: `<speaker audio=\"marusia-sounds/game-ping-1\"> ${yes} Эта буква встречается ${count} раз` + pluralizeRus(count, ['', 'а', '']) + ".",
         end_session: false
       },
       session: pick(["session_id", "message_id", "user_id"], session),
@@ -119,10 +118,12 @@ module.exports = {
     };
   },
   wrongAnswer: function ({ request, session, version }) {
+    //<speaker audio=\"marusia-sounds/things-construction-1\">  когда создают балки 
+    const no = arrayRandElement(["Не угадали!", "Неверно!", "Нет!", "Неправильно!", "Мимо!", "Такой буквы тут нет.", "Увы, нет.", "Промах"])
     return {
       response: {
-        text: "Не угадали! У вас осталось " + attempts + " попыт" + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + ".",
-        tts: "<speaker audio=\"marusia-sounds/game-loss-3\"> Не угадали! У вас осталось " + attempts + " попыт" + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + ".",
+        text: [`${no} У вас осталось ${attempts} попыт` + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + "."],
+        tts: `${no} <speaker audio=\"marusia-sounds/game-loss-3\"> У вас осталось ${attempts} попыт` + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + ".",
         end_session: false
       },
       session: pick(["session_id", "message_id", "user_id"], session),
@@ -135,7 +136,7 @@ module.exports = {
         text:
           "Вы проиграли. Не расстраивайтесь, в следующий раз точно повезет! Поиграем еще?",
         tts:
-          "<s>Вы проиграли.</s> Не расстраивайтесь, в следующий раз точно повезет! <break time='1000ms'/> Поиграем ещ`ё?",
+          "<speaker audio=\"marusia-sounds/human-laugh-3\"><s>Вы проиграли.</s> Не расстраивайтесь, в следующий раз точно повезет! <break time='1000ms'/> Поиграем ещ`ё?",
         buttons: [
           {
             title: "Да!",
