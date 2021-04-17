@@ -3,7 +3,7 @@ const { pick } = require("ramda");
 let word = "";
 let hideWord = "";
 let arrWord = [];
-let attempts = 9;
+let attempts = 0;
 let count;
 var arr = ['сообщение', 'колодец', 'праздник', 'картинка', 'троллейбус', 'каравай', 'поступок'];
 
@@ -30,28 +30,45 @@ function newHideWord(word) {
 }
 
 module.exports = {
-  youVersion: function (req) {
-    if (attempts <= 1) {
-      hideWord = "";
-      attempts = 9;
-      return this.youLoose(req)
-    } else if (hideWord == word) return this.youWin(req); else {
-      if (word.indexOf(req.request["command"]) > -1) {
-        count = 0;
-        for (let i = 0; i < arrWord.length; i++) {
-          if (req.request.command == arrWord[i]) {
-            hideWord = hideWord.substr(0, i) + req.request.command + hideWord.substr(i + 1);
-            count++;
-          }
+  choiceAnswer: function (req) {
+    if (req.session.new) {
+      return this.clientStart(req);
+    } else {
+      if (attempts == 0) {
+        if (req.request.command == "нет" || req.request.command == "on_interrupt")
+          return this.clientStop(req);
+        else {
+          hideWord = "";
+          attempts = 9;
+          return this.newWord(req);
         }
-        return this.youGuessed(req, { hideWord, count })
-      } else {
-        attempts--;
-        return this.youDidntGuessed(req)
+      }
+      if (attempts == 1) {
+        attempts = 0;
+        return this.clientLost(req)
+      }
+      else {
+        if (word.indexOf(req.request["command"]) > -1) {
+          count = 0;
+          for (let i = 0; i < arrWord.length; i++) {
+            if (req.request.command == arrWord[i]) {
+              hideWord = hideWord.substr(0, i) + req.request.command + hideWord.substr(i + 1);
+              count++;
+            }
+          }
+          if (hideWord == word) {
+            attempts = 0;
+            return this.clientWon(req);
+          } else
+            return this.correctAnswer(req, { hideWord, count })
+        } else {
+          attempts--;
+          return this.wrongAnswer(req)
+        }
       }
     }
   },
-  youStart: function ({ request, session, version }) {
+  clientStart: function ({ request, session, version }) {
     return {
       response: {
         text:
@@ -90,7 +107,7 @@ module.exports = {
       version
     };
   },
-  youGuessed: function ({ request, session, version }, { hideWord, count }) {
+  correctAnswer: function ({ request, session, version }, { hideWord, count }) {
     return {
       response: {
         text: ["Угадали! Эта буква встречается " + count + " раз" + pluralizeRus(count, ['', 'а', '']) + ".", hideWord],
@@ -101,10 +118,10 @@ module.exports = {
       version
     };
   },
-  youDidntGuessed: function ({ request, session, version }) {
+  wrongAnswer: function ({ request, session, version }) {
     return {
       response: {
-        text: "Не угадали! У вас осталось " + attempts + " попыт" + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + "." + word,
+        text: "Не угадали! У вас осталось " + attempts + " попыт" + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + ".",
         tts: "<speaker audio=\"marusia-sounds/game-loss-3\"> Не угадали! У вас осталось " + attempts + " попыт" + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + ".",
         end_session: false
       },
@@ -112,7 +129,7 @@ module.exports = {
       version
     };
   },
-  youLoose: function ({ request, session, version }) {
+  clientLost: function ({ request, session, version }) {
     return {
       response: {
         text:
@@ -138,7 +155,7 @@ module.exports = {
       version
     };
   },
-  youWin: function ({ request, session, version }) {
+  clientWon: function ({ request, session, version }) {
     return {
       response: {
         text:
@@ -164,7 +181,7 @@ module.exports = {
       version
     };
   },
-  youStop: function ({ request, session, version }) {
+  clientStop: function ({ request, session, version }) {
     return {
       response: {
         text:
