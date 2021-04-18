@@ -39,7 +39,7 @@ module.exports = {
           return this.clientStop(req);
         else {
           hideWord = "";
-          attempts = 2; //кол-во попыток
+          attempts = 9; //кол-во попыток
           return this.newWord(req);
         }
       }
@@ -124,6 +124,10 @@ module.exports = {
       response: {
         text: [`${no} У вас осталось ${attempts} попыт` + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + "."],
         tts: `${no} <speaker audio=\"marusia-sounds/game-loss-3\"> У вас осталось ${attempts} попыт` + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + ".",
+        card: {
+          type: "BigImage",
+          image_id: 457239017
+        },
         end_session: false
       },
       session: pick(["session_id", "message_id", "user_id"], session),
