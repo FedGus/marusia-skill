@@ -119,10 +119,10 @@ module.exports = {
   },
   wrongAnswer: function ({ request, session, version }) {
     //<speaker audio=\"marusia-sounds/things-construction-1\">  когда создают балки 
-    const no = arrayRandElement(["Не угадали!", "Неверно!", "Нет!", "Неправильно!", "Мимо!", "Такой буквы тут нет.", "Увы, нет.", "Промах"])
+    const no = arrayRandElement(["Не угадали!", "Неверно!", "Нет!", "Неправильно!", "Мимо!", "Такой буквы тут нет.", "Увы, нет.", "Промах."])
     return {
       response: {
-        text: [`${no} У вас осталось ${attempts} попыт` + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + "."],
+        text: `${no} У вас осталось ${attempts} попыт` + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + ".",
         tts: `${no} <speaker audio=\"marusia-sounds/game-loss-3\"> У вас осталось ${attempts} попыт` + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + ".",
         card: {
           type: "BigImage",
