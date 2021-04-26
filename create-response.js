@@ -123,10 +123,10 @@ module.exports = {
     return {
       response: {
         text: `${no} У вас осталось ${attempts} попыт` + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + ".",
-        tts: `${no} <speaker audio=\"marusia-sounds/game-loss-3\"> У вас осталось ${attempts} попыт` + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + ".",
+        
         card: {
           type: "BigImage",
-          image_id: 457239017
+          image_id: 457239027
         },
         end_session: false
       },
