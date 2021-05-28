@@ -4,6 +4,7 @@ let word = "";
 let hideWord = "";
 let arrWord = [];
 let attempts = 0;
+let id_image = 457239045; //картинка проигрыша
 let count;
 var arr = ['сообщение', 'колодец', 'праздник', 'картинка', 'троллейбус', 'каравай', 'поступок'];
 
@@ -61,7 +62,8 @@ module.exports = {
           attempts--;
           if (attempts == 0)
             return this.clientLost(req); else
-            return this.wrongAnswer(req)
+            id_image = id_image - attempts;
+          return this.wrongAnswer(req)
         }
       }
     }
@@ -123,10 +125,10 @@ module.exports = {
     return {
       response: {
         text: `${no} У вас осталось ${attempts} попыт` + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + ".",
-        
+        tts: `${no} <speaker audio=\"marusia-sounds/game-loss-3\"> У вас осталось ${attempts} попыт` + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + ".",
         card: {
           type: "BigImage",
-          image_id: 457239027
+          image_id: id_image
         },
         end_session: false
       },
@@ -141,6 +143,10 @@ module.exports = {
           "Вы проиграли. Не расстраивайтесь, в следующий раз точно повезет! Поиграем еще?",
         tts:
           "<speaker audio=\"marusia-sounds/human-laugh-3\"><s>Вы проиграли.</s> Не расстраивайтесь, в следующий раз точно повезет! <break time='1000ms'/> Поиграем ещ`ё?",
+        // card: {
+        //   type: "BigImage",
+        //   image_id: id_image
+        // },
         buttons: [
           {
             title: "Да!",
@@ -167,6 +173,10 @@ module.exports = {
           "Поздравляю, вы выиграли! Да, это слово '" + word + "'. Поиграем еще?",
         tts:
           "<s>Поздравляю, вы выиграли!</s> Да, это слово '" + word + "'. <break time='1000ms'/> Поиграем ещ`ё?",
+        // card: {
+        //   type: "BigImage",
+        //   image_id: 457239046
+        // },
         buttons: [
           {
             title: "Да!",
