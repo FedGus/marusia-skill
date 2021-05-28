@@ -6,6 +6,7 @@ let arrWord = [];
 let attempts = 0;
 let id_image = 457239045; //картинка проигрыша
 let count;
+let places;
 var arr = ['сообщение', 'колодец', 'праздник', 'картинка', 'троллейбус', 'каравай', 'поступок'];
 
 function arrayRandElement(arr) {
@@ -47,17 +48,28 @@ module.exports = {
       if (attempts >= 1) {
         if (word.indexOf(req.request["command"]) > -1) {
           count = 0;
+          let place = [];
           for (let i = 0; i < arrWord.length; i++) {
             if (req.request.command == arrWord[i]) {
               hideWord = hideWord.substr(0, i) + req.request.command + hideWord.substr(i + 1);
+              place.push(i + 1); //записываем положение буквы
               count++;
             }
           }
           if (hideWord == word) {
             attempts = 0;
             return this.clientWon(req);
-          } else
-            return this.correctAnswer(req, { hideWord, count })
+          } else {
+            if (place.length > 1) { //если букв несколько, то перечисляем
+              places = place[0]
+              for (let i = 1; i < place.length; i++) {
+                places += ' и ' + place[i]
+              }
+            } else {
+              places = place[0]
+            }
+            return this.correctAnswer(req, { hideWord, count, places })
+          }
         } else {
           attempts--;
           if (attempts == 0)
@@ -107,12 +119,12 @@ module.exports = {
       version
     };
   },
-  correctAnswer: function ({ request, session, version }, { hideWord, count }) {
+  correctAnswer: function ({ request, session, version }, { hideWord, count, place }) {
     const yes = arrayRandElement(["Да!", "Верно!", "Угадали!", "Точно!", "В точку!", "Правильно!", "В яблочко!", "Есть такое!"])
     return {
       response: {
-        text: [`${yes} Эта буква встречается ${count} раз` + pluralizeRus(count, ['', 'а', '']) + ".", hideWord],
-        tts: `<speaker audio=\"marusia-sounds/game-ping-1\"> ${yes} Эта буква встречается ${count} раз` + pluralizeRus(count, ['', 'а', '']) + ".",
+        text: [`${yes} Эта буква встречается ${count} раз` + pluralizeRus(count, ['', 'а', '']) + ". Это " + places + " буква.", hideWord],
+        tts: `<speaker audio=\"marusia-sounds/game-ping-1\"> ${yes} Эта буква встречается ${count} раз` + pluralizeRus(count, ['', 'а', '']) + ". Это " + places + " буква.",
         end_session: false
       },
       session: pick(["session_id", "message_id", "user_id"], session),
@@ -126,10 +138,10 @@ module.exports = {
       response: {
         text: `${no} У вас осталось ${attempts} попыт` + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + ".",
         tts: `${no} <speaker audio=\"marusia-sounds/game-loss-3\"> У вас осталось ${attempts} попыт` + pluralizeRus(attempts, ['ка', 'ки', 'ок']) + ".",
-        card: {
-          type: "BigImage",
-          image_id: id_image
-        },
+        // card: {
+        //   type: "BigImage",
+        //   image_id: id_image
+        // },
         end_session: false
       },
       session: pick(["session_id", "message_id", "user_id"], session),
@@ -143,10 +155,6 @@ module.exports = {
           "Вы проиграли. Не расстраивайтесь, в следующий раз точно повезет! Поиграем еще?",
         tts:
           "<speaker audio=\"marusia-sounds/human-laugh-3\"><s>Вы проиграли.</s> Не расстраивайтесь, в следующий раз точно повезет! <break time='1000ms'/> Поиграем ещ`ё?",
-        // card: {
-        //   type: "BigImage",
-        //   image_id: id_image
-        // },
         buttons: [
           {
             title: "Да!",
@@ -173,10 +181,6 @@ module.exports = {
           "Поздравляю, вы выиграли! Да, это слово '" + word + "'. Поиграем еще?",
         tts:
           "<s>Поздравляю, вы выиграли!</s> Да, это слово '" + word + "'. <break time='1000ms'/> Поиграем ещ`ё?",
-        // card: {
-        //   type: "BigImage",
-        //   image_id: 457239046
-        // },
         buttons: [
           {
             title: "Да!",
